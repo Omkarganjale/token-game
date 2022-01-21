@@ -5,9 +5,14 @@ pragma solidity ^0.8.2;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract TokenGame is  ERC721, ERC721URIStorage, Ownable {
+
+    using Counters for Counters.Counter;
+    Counters.Counter internal mintCount;
 
     // Tokens used to purchase NFTs
     ERC20 public purchaseToken; 
@@ -32,6 +37,15 @@ contract TokenGame is  ERC721, ERC721URIStorage, Ownable {
         for(cnt = 0; cnt<tokenIds.length; cnt++){
             safeTransferFrom(msg.sender, receiver, tokenIds[cnt]);
         }
+    }
+
+    function batchMintCard (uint256 quantity, string memory _uri) public onlyOwner returns (uint[2] memory) {
+        uint[2] memory idRange = [mintCount.current(), mintCount.current()+quantity-1]; 
+        for(uint256 i = 0; i<quantity; i++){
+            safeMint(owner(), mintCount.current(), _uri);
+            mintCount.increment();
+        }
+        return idRange;
     }
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
